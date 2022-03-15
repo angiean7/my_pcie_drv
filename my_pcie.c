@@ -102,7 +102,7 @@ static void __exit pcie_dev_exit(void)
 
 module_init(pcie_dev_init);
 module_exit(pcie_dev_exit);
-/*
+
 static int pcie_dev_open(struct inode *i_node, struct file *fp)
 {
   int minor = 0;
@@ -127,11 +127,11 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp)
   {
     return -ERESTARTSYS;
   }
-*/
+
   //get irq
 
 
-//}
+}
 
 // static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
 // {
