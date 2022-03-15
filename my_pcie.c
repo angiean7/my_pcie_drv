@@ -133,14 +133,14 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp)
 
 }
 
-// static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
-// {
-//   printk(PCIEX_LOGPFX"Enter pcie_dev_read_ulong function\n");
-//   // access_ok() to checks if a user space pointer is valid
-//   // copy from user to get parameters
-//   // ioread
-//   // copy data to user
-// }
+static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
+{
+  printk(PCIEX_LOGPFX"Enter pcie_dev_read_ulong function\n");
+  // access_ok() to checks if a user space pointer is valid
+  // copy from user to get parameters
+  // ioread
+  // copy data to user
+}
 
 // static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
 // {
