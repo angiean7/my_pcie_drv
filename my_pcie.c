@@ -5,8 +5,8 @@
 #include <linux/jiffies.h>
 #include <linux/uaccess.h>
 
-#define  PCIE_DEV_VENDOR_ID  0x10ee  
-#define  PCIE_DEV_DEVICE_ID  0x7024  
+#define  PCIE_DEV_VENDOR_ID  0xaa  
+#define  PCIE_DEV_DEVICE_ID  0xbb  
 
 static dev_t  dev_first;
 struct cdev  *pcie_cdev;
@@ -46,13 +46,13 @@ static struct pci_driver pcie_dev_driver = {
   .resume   = pcie_dev_resume,
 };
 
+
 static struct file_operations fops = {
   .owner     = THIS_MODULE,
   .open      = pcie_dev_open,
   .release   = pcie_dev_close,
   .ioctl     = pcie_dev_ioctl,
 };
-
 
 static int __init pcie_dev_init(void)
 {
@@ -73,7 +73,7 @@ static int __init pcie_dev_init(void)
   pcie_cdev->ops = &fops;
   cdev_init(pcie_cdev, &fops);
   cdev_add(pcie_cdev, dev_first, 1);
-  
+
   rc = pci_register_driver(&pcie_dev_driver);
   if(rc < 0)
   {
@@ -103,6 +103,7 @@ static void __exit pcie_dev_exit(void)
 module_init(pcie_dev_init);
 module_exit(pcie_dev_exit);
 
+/*
 static int pcie_dev_open(struct inode *i_node, struct file *fp)
 {
   int minor = 0;
@@ -177,3 +178,4 @@ static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
 
   return 0;
 }
+*/

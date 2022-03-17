@@ -69,6 +69,16 @@ struct st_cfg{
   u8      using_base_num;
 }cfg;
 
+struct dma_ctrl{
+  u32  DmaFlag;
+  u32  DmaSize;
+  u32  DmaDir;
+  u32  DmaTimeout;
+  u32  DmaCancelFlag;
+  struct semaphore  DmaSem;
+  wait_queue_head_t DmaWaitQueue;
+};
+
 struct dev_private{
   struct pci_dev  	*pci;
   u32              	open_count;
@@ -127,7 +137,6 @@ extern inline void reg_write_ulong( struct dev_private *pdev,
 {
   iowrite32(data, (u32 *)(pdev->cfg.map[bar] + offset));
 }
-
 
 extern inline void reg_write_ushort( struct dev_private *pdev,
 				     u8 bar,
