@@ -1,15 +1,15 @@
 /************************************************************************
  *                         my_pci.c                                     *
-************************************************************************/
+ ************************************************************************/
 #include "my_pcie.h"
 #include <linux/jiffies.h>
 #include <linux/uaccess.h>
 
-#define  PCIE_DEV_VENDOR_ID  0xaa  
-#define  PCIE_DEV_DEVICE_ID  0xbb  
+#define PCIE_DEV_VENDOR_ID 0xaa
+#define PCIE_DEV_DEVICE_ID 0xbb
 
-static dev_t  dev_first;
-struct cdev  *pcie_cdev;
+static dev_t dev_first;
+struct cdev *pcie_cdev;
 
 static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg);
 static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg);
@@ -17,7 +17,7 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp);
 static int pcie_dev_close(struct inode *i_node, struct file *fp);
 static long pcie_dev_ioctl(struct file *fp, unsigned int cmd, unsigned long arg);
 
-static int  pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id*id);
+static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id);
 static void pcie_dev_remove(struct pci_dev *dev);
 static int pcie_dev_open(struct inode *i_node, struct file *fp);
 static int pcie_dev_close(struct inode *i_node, struct file *fp);
@@ -25,49 +25,48 @@ static int pcie_dev_close(struct inode *i_node, struct file *fp);
 static int pcie_dev_suspend(struct pci_dev *dev, pm_message_t state);
 static int pcie_dev_resume(struct pci_dev *dev);
 
-static struct pci_device_id pcie_dev_table []  = {
+static struct pci_device_id pcie_dev_table[] = {
   {
-    .vendor	=  PCIE_DEV_VENDOR_ID,
-    .device	=  PCIE_DEV_DEVICE_ID,
-    .subvendor	=  PCI_ANY_ID,
-    .subdevice	=  PCI_ANY_ID,
+      .vendor = PCIE_DEV_VENDOR_ID,
+      .device = PCIE_DEV_DEVICE_ID,
+      .subvendor = PCI_ANY_ID,
+      .subdevice = PCI_ANY_ID,
   },
-  { 
-    /* all zeroes */ 
+  {
+      /* all zeroes */
   }
 };
 
 static struct pci_driver pcie_dev_driver = {
-  .name     = PCIEX_DEVNAME,
+  .name = PCIEX_DEVNAME,
   .id_table = pcie_dev_table,
-  .probe    = pcie_dev_probe,
-  .remove   = pcie_dev_remove,
-  .suspend  = pcie_dev_suspend,
-  .resume   = pcie_dev_resume,
+  .probe = pcie_dev_probe,
+  .remove = pcie_dev_remove,
+  .suspend = pcie_dev_suspend,
+  .resume = pcie_dev_resume,
 };
 
-
 static struct file_operations fops = {
-  .owner     = THIS_MODULE,
-  .open      = pcie_dev_open,
-  .release   = pcie_dev_close,
-  .compat_ioctl      = pcie_dev_ioctl,
+  .owner = THIS_MODULE,
+  .open = pcie_dev_open,
+  .release = pcie_dev_close,
+  .compat_ioctl = pcie_dev_ioctl,
 };
 
 static int __init pcie_dev_init(void)
 {
   int rc;
 
-  printk(PCIEX_LOGPFX"Enter pcie_dev_init function\n");
-  
+  printk(PCIEX_LOGPFX "Enter pcie_dev_init function\n");
+
   // register a range of char device numbers
   rc = alloc_chrdev_region(&dev_first, 0, MAX_BOARD_NUM, PCIEX_DEVNAME);
-  if(rc < 0)
+  if (rc < 0)
   {
-    printk(PCIEX_ERRPFX"Function failed:alloc_chrdev_region\n");
+    printk(PCIEX_ERRPFX "Function failed:alloc_chrdev_region\n");
     return rc;
   }
-  
+
   // alloc a char device
   pcie_cdev = cdev_alloc();
   pcie_cdev->ops = &fops;
@@ -75,19 +74,19 @@ static int __init pcie_dev_init(void)
   cdev_add(pcie_cdev, dev_first, 1);
 
   rc = pci_register_driver(&pcie_dev_driver);
-  if(rc < 0)
+  if (rc < 0)
   {
-    printk(PCIEX_ERRPFX"Function failed:pci_register_driver\n");
+    printk(PCIEX_ERRPFX "Function failed:pci_register_driver\n");
   }
-  
-  printk(PCIEX_LOGPFX"Exit pcie_dev_init function\n");
-  
+
+  printk(PCIEX_LOGPFX "Exit pcie_dev_init function\n");
+
   return (rc);
 }
 
 static void __exit pcie_dev_exit(void)
-{  
-  printk(PCIEX_LOGPFX"Enter pcie_dev_exit function\n");
+{
+  printk(PCIEX_LOGPFX "Enter pcie_dev_exit function\n");
 
   unregister_chrdev_region(dev_first, MAX_BOARD_NUM);
   cdev_del(pcie_cdev);
@@ -96,24 +95,34 @@ static void __exit pcie_dev_exit(void)
   // remove proc file in /proc
   // proc file records process system information
   remove_proc_entry(PCIEX_DEVNAME, NULL);
-  
-  printk(PCIEX_LOGPFX"Exit pcie_dev_exit function\n");
+
+  printk(PCIEX_LOGPFX "Exit pcie_dev_exit function\n");
 }
 
 module_init(pcie_dev_init);
 module_exit(pcie_dev_exit);
 
-
-static int  pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id*id)
+static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
   // enable device
+  if (pci_enable_device(pci_dev))
+  {
+    printk(PCIEX_ERRPFX "Function failed:pci_enable_device\n");
+    return ERR_DEVINT_DEVENABLE;
+  }
 
   // request regions
+  if(pci_request_regions(pci_dev, PCIEX_DEVNAME) != 0)
+  {
+    printk(PCIEX_ERRPFX"Function failed:pci_request_regions\n");    
+    return ERR_DEVINT_IO;
+  }
 
   /* malloc device private extension */
   // kzalloc is kmalloc but memory is set to 0
   return 0;
 }
+
 /*
 static int pcie_dev_open(struct inode *i_node, struct file *fp)
 {
@@ -132,9 +141,9 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp)
   {
     return -ERESTARTSYS;;
   }
-  
+
   fp->private_data = pdev;
-  
+
   if(down_interruptible(&pdev->dev_sem))
   {
     return -ERESTARTSYS;
@@ -164,7 +173,7 @@ static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
   ret = access_ok(VERIFY_WRITE, (void *)arg, sizeof(IOMSG));
   if(!ret)
   {
-    printk(PCIEX_ERRPFX"Failed to verify area (status=%d)\n", ret);  
+    printk(PCIEX_ERRPFX"Failed to verify area (status=%d)\n", ret);
     return ERR_AREA_VERIFY;
   }
 
@@ -172,7 +181,7 @@ static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
   ret = copy_from_user(&IoMsg, (void *)arg, sizeof(IOMSG));
   if(ret != 0)
   {
-    printk(PCIEX_ERRPFX"Get parameters failed!\n"); 
+    printk(PCIEX_ERRPFX"Get parameters failed!\n");
     return ERR_COPY_FROM_USER;
   }
 
@@ -183,7 +192,7 @@ static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
   ret = copy_to_user((void *)arg, &IoMsg, sizeof(IOMSG));
   if(ret != 0)
   {
-    printk(PCIEX_ERRPFX"Set parameters failed!\n"); 
+    printk(PCIEX_ERRPFX"Set parameters failed!\n");
     return ERR_COPY_TO_USER;
   }
 
