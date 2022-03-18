@@ -51,7 +51,7 @@ static struct file_operations fops = {
   .owner     = THIS_MODULE,
   .open      = pcie_dev_open,
   .release   = pcie_dev_close,
-  .ioctl     = pcie_dev_ioctl,
+  .compat_ioctl      = pcie_dev_ioctl,
 };
 
 static int __init pcie_dev_init(void)
@@ -103,6 +103,17 @@ static void __exit pcie_dev_exit(void)
 module_init(pcie_dev_init);
 module_exit(pcie_dev_exit);
 
+
+static int  pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id*id)
+{
+  // enable device
+
+  // request regions
+
+  /* malloc device private extension */
+  // kzalloc is kmalloc but memory is set to 0
+  return 0;
+}
 /*
 static int pcie_dev_open(struct inode *i_node, struct file *fp)
 {
