@@ -123,7 +123,7 @@ static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
   return 0;
 }
 
-/*
+
 static int pcie_dev_open(struct inode *i_node, struct file *fp)
 {
   int minor = 0;
@@ -198,4 +198,3 @@ static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
 
   return 0;
 }
-*/
