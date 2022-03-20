@@ -134,7 +134,7 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp)
   minor = MINOR(i_node->i_rdev);
   if(minor >= MAX_BOARD_NUM)
   {
-    //return -ERESTARTSYS;;
+    return -ERESTARTSYS;;
   }
 
   if(NULL == (pdev = pdev_all[minor]))
