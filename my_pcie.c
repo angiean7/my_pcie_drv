@@ -105,14 +105,14 @@ module_exit(pcie_dev_exit);
 static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
   // enable device
-  if (pci_enable_device(pci_dev))
+  if (pci_enable_device(dev))
   {
     printk(PCIEX_ERRPFX "Function failed:pci_enable_device\n");
     return ERR_DEVINT_DEVENABLE;
   }
 
   // request regions
-  if(pci_request_regions(pci_dev, PCIEX_DEVNAME) != 0)
+  if(pci_request_regions(dev, PCIEX_DEVNAME) != 0)
   {
     printk(PCIEX_ERRPFX"Function failed:pci_request_regions\n");    
     return ERR_DEVINT_IO;
@@ -127,6 +127,7 @@ static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
 static int pcie_dev_open(struct inode *i_node, struct file *fp)
 {
   int minor = 0;
+  struct dev_private *pdev;
 
   printk(PCIEX_LOGPFX"Enter pcie_dev_open function\n");
 
@@ -137,7 +138,7 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp)
     return -ERESTARTSYS;;
   }
 
-  if(NULL == (pdev = pdev_all[minor]))
+  // if(NULL == (pdev = pdev_all[minor]))
   {
     return -ERESTARTSYS;;
   }
@@ -152,6 +153,7 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp)
   //get irq
 
 
+  return (0);
 }
 
 static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
@@ -161,6 +163,7 @@ static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
   // copy from user to get parameters
   // ioread
   // copy data to user
+  return (0);
 }
 
 static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
