@@ -10,6 +10,8 @@
 
 static dev_t dev_first;
 struct cdev *pcie_cdev;
+struct dev_private *pdev_all[MAX_BOARD_NUM] = {NULL};
+static int    probe_count = 0;
 
 static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg);
 static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg);
@@ -59,23 +61,21 @@ static int __init pcie_dev_init(void)
 
   printk(PCIEX_LOGPFX "Enter pcie_dev_init function\n");
 
-  // register a range of char device numbers
+  /* register a range of char device numbers */
   rc = alloc_chrdev_region(&dev_first, 0, MAX_BOARD_NUM, PCIEX_DEVNAME);
-  if (rc < 0)
-  {
+  if (rc < 0){
     printk(PCIEX_ERRPFX "Function failed:alloc_chrdev_region\n");
     return rc;
   }
 
-  // alloc a char device
+  /* alloc a char device */
   pcie_cdev = cdev_alloc();
   pcie_cdev->ops = &fops;
   cdev_init(pcie_cdev, &fops);
   cdev_add(pcie_cdev, dev_first, 1);
 
   rc = pci_register_driver(&pcie_dev_driver);
-  if (rc < 0)
-  {
+  if (rc < 0){
     printk(PCIEX_ERRPFX "Function failed:pci_register_driver\n");
   }
 
@@ -92,8 +92,8 @@ static void __exit pcie_dev_exit(void)
   cdev_del(pcie_cdev);
   pci_unregister_driver(&pcie_dev_driver);
 
-  // remove proc file in /proc
-  // proc file records process system information
+  /* remove proc file in /proc */
+  /* proc file records process system information */
   remove_proc_entry(PCIEX_DEVNAME, NULL);
 
   printk(PCIEX_LOGPFX "Exit pcie_dev_exit function\n");
@@ -104,23 +104,35 @@ module_exit(pcie_dev_exit);
 
 static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
-  // enable device
-  if (pci_enable_device(dev))
-  {
+  int rc = 0;
+  struct dev_private *pdev;
+
+  /* enable device*/
+  if (pci_enable_device(dev)){
     printk(PCIEX_ERRPFX "Function failed:pci_enable_device\n");
     return ERR_DEVINT_DEVENABLE;
   }
 
-  // request regions
-  if(pci_request_regions(dev, PCIEX_DEVNAME) != 0)
-  {
+  /* request regions */
+  if(pci_request_regions(dev, PCIEX_DEVNAME) != 0){
     printk(PCIEX_ERRPFX"Function failed:pci_request_regions\n");    
     return ERR_DEVINT_IO;
   }
 
-  /* malloc device private extension */
-  // kzalloc is kmalloc but memory is set to 0
-  return 0;
+  do{
+    /* malloc device private extension */
+    /* kzalloc is kmalloc but memory is set to 0 */
+    pdev_all[probe_count] = pdev = kzalloc(sizeof(*pdev), GFP_ATOMIC);
+    if (!pdev){
+      printk(PCIEX_ERRPFX"Function failed:kmalloc\n");    
+      rc = ERR_DEVINT_KMALLOC;
+      break;
+    }
+
+  }while(0);
+  /* error */
+  pcie_dev_remove(dev);
+  return rc;
 }
 
 
@@ -133,20 +145,17 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp)
 
   // get minor number
   minor = MINOR(i_node->i_rdev);
-  if(minor >= MAX_BOARD_NUM)
-  {
+  if(minor >= MAX_BOARD_NUM){
     return -ERESTARTSYS;;
   }
 
-  // if(NULL == (pdev = pdev_all[minor]))
-  {
+  if(NULL == (pdev = pdev_all[minor])){
     return -ERESTARTSYS;;
   }
 
   fp->private_data = pdev;
 
-  if(down_interruptible(&pdev->dev_sem))
-  {
+  if(down_interruptible(&pdev->dev_sem)){
     return -ERESTARTSYS;
   }
 
@@ -174,16 +183,14 @@ static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
 
   // access_ok() to checks if a user space pointer is valid
   ret = access_ok(VERIFY_WRITE, (void *)arg, sizeof(IOMSG));
-  if(!ret)
-  {
+  if(!ret){
     printk(PCIEX_ERRPFX"Failed to verify area (status=%d)\n", ret);
     return ERR_AREA_VERIFY;
   }
 
   // copy from user to get parameters and data
   ret = copy_from_user(&IoMsg, (void *)arg, sizeof(IOMSG));
-  if(ret != 0)
-  {
+  if(ret != 0){
     printk(PCIEX_ERRPFX"Get parameters failed!\n");
     return ERR_COPY_FROM_USER;
   }
@@ -193,8 +200,7 @@ static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
 
   // copy data to user
   ret = copy_to_user((void *)arg, &IoMsg, sizeof(IOMSG));
-  if(ret != 0)
-  {
+  if(ret != 0){
     printk(PCIEX_ERRPFX"Set parameters failed!\n");
     return ERR_COPY_TO_USER;
   }
