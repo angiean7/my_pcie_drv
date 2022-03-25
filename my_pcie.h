@@ -35,6 +35,8 @@
 #define PCI_TYPE0_ADDRESSES 6
 #define PCI_TYPE1_ADDRESSES 2
 #define PCI_TYPE2_ADDRESSES 5
+#define TYPE_MEM    0x00
+#define TYPE_IO     0x01
 
 #ifndef u64
 #define u64 unsigned long long

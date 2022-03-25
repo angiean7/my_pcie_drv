@@ -105,6 +105,7 @@ module_exit(pcie_dev_exit);
 static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
   int rc = 0;
+  int i = 0;
   struct dev_private *pdev;
 
   /* enable device*/
@@ -129,27 +130,27 @@ static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
       break;
     }
   pdev->cfg.irq = NR_IRQS;
-  if(pci_dev->irq == 0){
+  if(dev->irq == 0){
     printk(PCIEX_ERRPFX"IRQ no assigned\n");    
     rc = ERR_DEVINT_IRQ;
-    goto err;
+    break;
   }
   
-  pdev->pci = pci_dev;
+  pdev->pci = dev;
   
   for(i=0; i<PCI_TYPE0_ADDRESSES; i++){
-    if(pci_resource_flags(pci_dev, i) == 0){
+    if(pci_resource_flags(dev, i) == 0){
       break;
     }
     
-    pdev->cfg.bar[i] = pci_resource_start(pci_dev, i);
-    pdev->cfg.siz[i] = pci_resource_len(pci_dev, i);
+    pdev->cfg.bar[i] = pci_resource_start(dev, i);
+    pdev->cfg.siz[i] = pci_resource_len(dev, i);
     
-    if(pci_resource_flags(pci_dev ,i) & IORESOURCE_IO){
+    if(pci_resource_flags(dev ,i) & IORESOURCE_IO){
       pdev->cfg.typ[i] = TYPE_IO;
-      pdev->cfg.map[i] = (void*)pci_resource_start(pci_dev, i);
+      pdev->cfg.map[i] = (void*)pci_resource_start(dev, i);
     }
-    if(pci_resource_flags(pci_dev, i) & IORESOURCE_MEM){
+    if(pci_resource_flags(dev, i) & IORESOURCE_MEM){
       pdev->cfg.typ[i] = TYPE_MEM;
       pdev->cfg.map[i] = ioremap_nocache( pdev->cfg.bar[i], pdev->cfg.siz[i]);
     }
