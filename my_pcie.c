@@ -129,7 +129,11 @@ static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
       break;
     }
 
+
+
+  probe_count++;
   }while(0);
+
   /* error */
   pcie_dev_remove(dev);
   return rc;
