@@ -128,7 +128,34 @@ static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
       rc = ERR_DEVINT_KMALLOC;
       break;
     }
+  pdev->cfg.irq = NR_IRQS;
+  if(pci_dev->irq == 0){
+    printk(PCIEX_ERRPFX"IRQ no assigned\n");    
+    rc = ERR_DEVINT_IRQ;
+    goto err;
+  }
+  
+  pdev->pci = pci_dev;
+  
+  for(i=0; i<PCI_TYPE0_ADDRESSES; i++){
+    if(pci_resource_flags(pci_dev, i) == 0){
+      break;
+    }
+    
+    pdev->cfg.bar[i] = pci_resource_start(pci_dev, i);
+    pdev->cfg.siz[i] = pci_resource_len(pci_dev, i);
+    
+    if(pci_resource_flags(pci_dev ,i) & IORESOURCE_IO){
+      pdev->cfg.typ[i] = TYPE_IO;
+      pdev->cfg.map[i] = (void*)pci_resource_start(pci_dev, i);
+    }
+    if(pci_resource_flags(pci_dev, i) & IORESOURCE_MEM){
+      pdev->cfg.typ[i] = TYPE_MEM;
+      pdev->cfg.map[i] = ioremap_nocache( pdev->cfg.bar[i], pdev->cfg.siz[i]);
+    }
 
+    pdev->cfg.using_base_num++;
+  }
 
 
   probe_count++;
