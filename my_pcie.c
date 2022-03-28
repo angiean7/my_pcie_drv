@@ -129,37 +129,37 @@ static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
       rc = ERR_DEVINT_KMALLOC;
       break;
     }
-  pdev->cfg.irq = NR_IRQS;
-  if(dev->irq == 0){
-    printk(PCIEX_ERRPFX"IRQ no assigned\n");    
-    rc = ERR_DEVINT_IRQ;
-    break;
-  }
-  
-  pdev->pci = dev;
-  
-  for(i=0; i<PCI_TYPE0_ADDRESSES; i++){
-    if(pci_resource_flags(dev, i) == 0){
+      
+    pdev->cfg.irq = NR_IRQS;
+    if(dev->irq == 0){
+      printk(PCIEX_ERRPFX"IRQ no assigned\n");    
+      rc = ERR_DEVINT_IRQ;
       break;
     }
     
-    pdev->cfg.bar[i] = pci_resource_start(dev, i);
-    pdev->cfg.siz[i] = pci_resource_len(dev, i);
+    pdev->pci = dev;
     
-    if(pci_resource_flags(dev ,i) & IORESOURCE_IO){
-      pdev->cfg.typ[i] = TYPE_IO;
-      pdev->cfg.map[i] = (void*)pci_resource_start(dev, i);
+    for(i=0; i<PCI_TYPE0_ADDRESSES; i++){
+      if(pci_resource_flags(dev, i) == 0){
+        break;
+      }
+      
+      pdev->cfg.bar[i] = pci_resource_start(dev, i);
+      pdev->cfg.siz[i] = pci_resource_len(dev, i);
+      
+      if(pci_resource_flags(dev ,i) & IORESOURCE_IO){
+        pdev->cfg.typ[i] = TYPE_IO;
+        pdev->cfg.map[i] = (void*)pci_resource_start(dev, i);
+      }
+      if(pci_resource_flags(dev, i) & IORESOURCE_MEM){
+        pdev->cfg.typ[i] = TYPE_MEM;
+        pdev->cfg.map[i] = ioremap_nocache( pdev->cfg.bar[i], pdev->cfg.siz[i]);
+      }
+
+      pdev->cfg.using_base_num++;
     }
-    if(pci_resource_flags(dev, i) & IORESOURCE_MEM){
-      pdev->cfg.typ[i] = TYPE_MEM;
-      pdev->cfg.map[i] = ioremap_nocache( pdev->cfg.bar[i], pdev->cfg.siz[i]);
-    }
 
-    pdev->cfg.using_base_num++;
-  }
-
-
-  probe_count++;
+    probe_count++;
   }while(0);
 
   /* error */
@@ -230,35 +230,35 @@ static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
   return (0);
 }
 
-static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
-{
-  printk(PCIEX_LOGPFX"Enter pcie_dev_write_ulong function\n");
-  IOMSG IoMsg;
-  u32   ret;
+// static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
+// {
+//   printk(PCIEX_LOGPFX"Enter pcie_dev_write_ulong function\n");
+//   IOMSG IoMsg;
+//   u32   ret;
 
-  // access_ok() to checks if a user space pointer is valid
-  ret = access_ok(VERIFY_WRITE, (void *)arg, sizeof(IOMSG));
-  if(!ret){
-    printk(PCIEX_ERRPFX"Failed to verify area (status=%d)\n", ret);
-    return ERR_AREA_VERIFY;
-  }
+//   // access_ok() to checks if a user space pointer is valid
+//   ret = access_ok(VERIFY_WRITE, (void *)arg, sizeof(IOMSG));
+//   if(!ret){
+//     printk(PCIEX_ERRPFX"Failed to verify area (status=%d)\n", ret);
+//     return ERR_AREA_VERIFY;
+//   }
 
-  // copy from user to get parameters and data
-  ret = copy_from_user(&IoMsg, (void *)arg, sizeof(IOMSG));
-  if(ret != 0){
-    printk(PCIEX_ERRPFX"Get parameters failed!\n");
-    return ERR_COPY_FROM_USER;
-  }
+//   // copy from user to get parameters and data
+//   ret = copy_from_user(&IoMsg, (void *)arg, sizeof(IOMSG));
+//   if(ret != 0){
+//     printk(PCIEX_ERRPFX"Get parameters failed!\n");
+//     return ERR_COPY_FROM_USER;
+//   }
 
-  // ioread
-  reg_read_ulong(pdev, IoMsg.Bar, IoMsg.Offset, (u32*)&(IoMsg.Data));
+//   // ioread
+//   reg_read_ulong(pdev, IoMsg.Bar, IoMsg.Offset, (u32*)&(IoMsg.Data));
 
-  // copy data to user
-  ret = copy_to_user((void *)arg, &IoMsg, sizeof(IOMSG));
-  if(ret != 0){
-    printk(PCIEX_ERRPFX"Set parameters failed!\n");
-    return ERR_COPY_TO_USER;
-  }
+//   // copy data to user
+//   ret = copy_to_user((void *)arg, &IoMsg, sizeof(IOMSG));
+//   if(ret != 0){
+//     printk(PCIEX_ERRPFX"Set parameters failed!\n");
+//     return ERR_COPY_TO_USER;
+//   }
 
-  return 0;
-}
+//   return 0;
+// }
