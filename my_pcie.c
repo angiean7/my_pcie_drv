@@ -230,35 +230,35 @@ static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
   return (0);
 }
 
-// static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
-// {
-//   printk(PCIEX_LOGPFX"Enter pcie_dev_write_ulong function\n");
-//   IOMSG IoMsg;
-//   u32   ret;
+static int pcie_dev_write_ulong(struct dev_private *pdev, unsigned long arg)
+{
+  printk(PCIEX_LOGPFX"Enter pcie_dev_write_ulong function\n");
+  IOMSG IoMsg;
+  u32   ret;
 
-//   // access_ok() to checks if a user space pointer is valid
-//   ret = access_ok(VERIFY_WRITE, (void *)arg, sizeof(IOMSG));
-//   if(!ret){
-//     printk(PCIEX_ERRPFX"Failed to verify area (status=%d)\n", ret);
-//     return ERR_AREA_VERIFY;
-//   }
+  // access_ok() to checks if a user space pointer is valid
+  ret = access_ok(VERIFY_WRITE, (void *)arg, sizeof(IOMSG));
+  if(!ret){
+    printk(PCIEX_ERRPFX"Failed to verify area (status=%d)\n", ret);
+    return ERR_AREA_VERIFY;
+  }
 
-//   // copy from user to get parameters and data
-//   ret = copy_from_user(&IoMsg, (void *)arg, sizeof(IOMSG));
-//   if(ret != 0){
-//     printk(PCIEX_ERRPFX"Get parameters failed!\n");
-//     return ERR_COPY_FROM_USER;
-//   }
+  // copy from user to get parameters and data
+  ret = copy_from_user(&IoMsg, (void *)arg, sizeof(IOMSG));
+  if(ret != 0){
+    printk(PCIEX_ERRPFX"Get parameters failed!\n");
+    return ERR_COPY_FROM_USER;
+  }
 
-//   // ioread
-//   reg_read_ulong(pdev, IoMsg.Bar, IoMsg.Offset, (u32*)&(IoMsg.Data));
+  // ioread
+  reg_read_ulong(pdev, IoMsg.Bar, IoMsg.Offset, (u32*)&(IoMsg.Data));
 
-//   // copy data to user
-//   ret = copy_to_user((void *)arg, &IoMsg, sizeof(IOMSG));
-//   if(ret != 0){
-//     printk(PCIEX_ERRPFX"Set parameters failed!\n");
-//     return ERR_COPY_TO_USER;
-//   }
+  // copy data to user
+  ret = copy_to_user((void *)arg, &IoMsg, sizeof(IOMSG));
+  if(ret != 0){
+    printk(PCIEX_ERRPFX"Set parameters failed!\n");
+    return ERR_COPY_TO_USER;
+  }
 
-//   return 0;
-// }
+  return 0;
+}
