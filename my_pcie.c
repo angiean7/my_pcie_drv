@@ -159,7 +159,14 @@ static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
       pdev->cfg.using_base_num++;
     }
 
+    pdev->cfg.slot = PCI_SLOT(dev->devfn);
+    pdev->cfg.func = PCI_FUNC(dev->devfn);
+    pdev->cfg.irq  = dev->irq;
+
+    pci_set_drvdata(dev, pdev);
+
     probe_count++;
+
   }while(0);
 
   /* error */
