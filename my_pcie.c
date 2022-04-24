@@ -198,11 +198,11 @@ static int pcie_dev_open(struct inode *i_node, struct file *fp)
     return -ERESTARTSYS;
   }
 
-//   //get irq
+  //get irq
 
 
-//   return (0);
-// }
+  return (0);
+}
 
 static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
 {
