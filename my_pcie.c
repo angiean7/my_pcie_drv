@@ -175,34 +175,34 @@ static int pcie_dev_probe(struct pci_dev *dev, const struct pci_device_id *id)
 }
 
 
-static int pcie_dev_open(struct inode *i_node, struct file *fp)
-{
-  int minor = 0;
-  struct dev_private *pdev;
+// static int pcie_dev_open(struct inode *i_node, struct file *fp)
+// {
+//   int minor = 0;
+//   struct dev_private *pdev;
 
-  printk(PCIEX_LOGPFX"Enter pcie_dev_open function\n");
+//   printk(PCIEX_LOGPFX"Enter pcie_dev_open function\n");
 
-  // get minor number
-  minor = MINOR(i_node->i_rdev);
-  if(minor >= MAX_BOARD_NUM){
-    return -ERESTARTSYS;;
-  }
+//   // get minor number
+//   minor = MINOR(i_node->i_rdev);
+//   if(minor >= MAX_BOARD_NUM){
+//     return -ERESTARTSYS;;
+//   }
 
-  if(NULL == (pdev = pdev_all[minor])){
-    return -ERESTARTSYS;;
-  }
+//   if(NULL == (pdev = pdev_all[minor])){
+//     return -ERESTARTSYS;;
+//   }
 
-  fp->private_data = pdev;
+//   fp->private_data = pdev;
 
-  if(down_interruptible(&pdev->dev_sem)){
-    return -ERESTARTSYS;
-  }
+//   if(down_interruptible(&pdev->dev_sem)){
+//     return -ERESTARTSYS;
+//   }
 
-  //get irq
+//   //get irq
 
 
-  return (0);
-}
+//   return (0);
+// }
 
 static int pcie_dev_read_ulong(struct dev_private *pdev, unsigned long arg)
 {
